@@ -12,11 +12,11 @@ edition = "2018"
 
 [dependencies]
 cfg-if = "0.1"
-core_io = { version = "0.1.20190701", package = "core_io", optional = true }
+core2 = { version = "0.4", default-features = false, optional = true }
 
 [dev-dependencies]
 hashbrown = "0.6.3"
 
 [features]
-no_std = ["core_io"]
-alloc = ["core_io/alloc", "core_io/collections"]
+no_std = ["core2"]
+# alloc = ["core_io/alloc", "core_io/collections"]

@@ -2,6 +2,8 @@ use core::fmt;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use core::cell::UnsafeCell;
 use core::ops::{DerefMut, Deref, Drop};
+use core::marker::{Send, Sync};
+use core::option::{Option, Option::None, Option::Some};
 
 #[repr(align(32))]
 pub struct Mutex<T> {

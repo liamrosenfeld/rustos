@@ -10,9 +10,6 @@ authors = [
 ]
 edition = "2018"
 
-[package.metadata.cargo-xbuild]
-memcpy = true
-
 [dependencies]
 pi = { path = "../lib/pi/" }
 shim = { path = "../lib/shim", features = ["no_std"] }

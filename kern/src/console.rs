@@ -1,6 +1,9 @@
 use core::fmt;
 use pi::uart::MiniUart;
 use shim::io;
+use core::option::{Option, Option::None};
+use core::result::Result::Ok;
+use core::unimplemented;
 
 use crate::mutex::Mutex;
 

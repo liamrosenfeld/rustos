@@ -18,6 +18,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kernel"
+version = "0.1.0"
+dependencies = [
+ "pi",
+ "shim",
+ "stack-vec",
+]
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -38,6 +47,10 @@ dependencies = [
  "cfg-if",
  "core2",
 ]
+
+[[package]]
+name = "stack-vec"
+version = "0.1.0"
 
 [[package]]
 name = "volatile"

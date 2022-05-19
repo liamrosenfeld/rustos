@@ -9,8 +9,8 @@ OBJCPY := cargo objcopy -- --strip-all -O binary
 all: build
 
 build:
-	@echo "+ Building build/$(KERN).elf [xbuild/$@]"
-	@cargo xbuild --release
+	@echo "+ Building build/$(KERN).elf [build/$@]"
+	@cargo build --release
 	@mkdir -p build
 	@cp -f $(TARGET) build/$(KERN).elf
 
@@ -18,7 +18,7 @@ build:
 	@$(OBJCPY) $(TARGET) build/$(KERN).bin
 
 check:
-	@cargo xcheck
+	@cargo check
 
 qemu: build
 	./qemu.sh build/$(KERN).elf
