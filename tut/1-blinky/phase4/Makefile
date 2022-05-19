@@ -4,31 +4,31 @@ KERN := blinky
 KERN_DEBUG := target/aarch64-unknown-none/debug/${KERN}
 KERN_RELEASE := target/aarch64-unknown-none/release/${KERN}
 
-OBJCPY := cargo objcopy -- --strip-all -O binary
+OBJCPY := cargo objcopy --release -- --strip-all -O binary
 
 .PHONY: all debug release qemu objdump nm check clean install test
 
 all: release
 
 # e.g., xbuild bin opt
-define xbuild
-	@echo "+ Building build/$(KERN).elf [xbuild/$@]"
-	@cargo xbuild $(2)
+define build
+	@echo "+ Building build/$(KERN).elf [build/$@]"
+	@cargo build $(2)
 	@mkdir -p build
 	@cp -f $(1) build/$(KERN).elf
 
 	@echo "+ Building build/$(KERN).bin [objcopy]"
-	@$(OBJCPY) $(1) build/$(KERN).bin
+	@$(OBJCPY) build/$(KERN).bin
 endef
 
 debug:
-	$(call xbuild,$(KERN_DEBUG))
+	$(call build,$(KERN_DEBUG))
 
 release:
-	$(call xbuild,$(KERN_RELEASE),--release)
+	$(call build,$(KERN_RELEASE),--release)
 
 check:
-	@cargo xcheck
+	@cargo check
 
 qemu:
 	./qemu.sh build/$(KERN).elf -d in_asm

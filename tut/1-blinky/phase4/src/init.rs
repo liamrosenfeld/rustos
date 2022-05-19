@@ -1,7 +1,9 @@
+mod panic;
+
+use core::arch::global_asm;
+use core::include_str;
 use core::mem::zeroed;
 use core::ptr::write_volatile;
-
-mod panic;
 
 use crate::kmain;
 
