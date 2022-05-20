@@ -3,15 +3,6 @@
 version = 3
 
 [[package]]
-name = "boot"
-version = "0.1.0"
-dependencies = [
- "pi",
- "shim",
- "xmodem",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -33,24 +24,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
-name = "pi"
-version = "0.1.0"
-dependencies = [
- "shim",
- "volatile",
-]
-
-[[package]]
 name = "shim"
 version = "0.1.0"
 dependencies = [
  "cfg-if",
  "core2",
 ]
-
-[[package]]
-name = "volatile"
-version = "0.1.0"
 
 [[package]]
 name = "xmodem"

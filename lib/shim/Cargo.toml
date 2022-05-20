@@ -11,12 +11,12 @@ authors = [
 edition = "2018"
 
 [dependencies]
-cfg-if = "0.1"
+cfg-if = "1.0"
 core2 = { version = "0.4", default-features = false, optional = true }
 
 [dev-dependencies]
-hashbrown = "0.6.3"
+hashbrown = "0.12"
 
 [features]
 no_std = ["core2"]
-# alloc = ["core_io/alloc", "core_io/collections"]
+alloc = ["core2/alloc"]
