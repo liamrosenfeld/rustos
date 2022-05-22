@@ -16,7 +16,7 @@ build:
 	@cp -f $(TARGET) build/$(KERN).elf
 
 	@echo "+ Building build/$(KERN).bin [objcopy]"
-	@$(OBJCPY) $(TARGET) build/$(KERN).bin
+	@$(OBJCPY) build/$(KERN).bin
 
 check:
 	@cargo check
@@ -39,8 +39,7 @@ clean:
 	rm -rf build
 
 install: build
-	@echo "+ Installing build/$(KERN).elf [install-kernel.py]"
-	@$(ROOT)/bin/install-kernel.py build/$(KERN).elf
+	cp ./build/kernel.bin /media/liam/boot/kernel8.img
 
 test:
 	cargo test --target=$(shell $(ROOT)/bin/get-host-target.sh)

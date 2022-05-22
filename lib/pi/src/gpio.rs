@@ -46,8 +46,7 @@ struct Registers {
     PUDCLK: [Volatile<u32>; 2],
 }
 
-/// Possible states for a GPIO pin.
-#[allow(unused_doc_comments)]
+// Possible states for a GPIO pin.
 states! {
     Uninitialized, Input, Output, Alt
 }
@@ -103,7 +102,12 @@ impl Gpio<Uninitialized> {
     /// Enables the alternative function `function` for `self`. Consumes self
     /// and returns a `Gpio` structure in the `Alt` state.
     pub fn into_alt(self, function: Function) -> Gpio<Alt> {
-        unimplemented!()
+        let reg = (self.pin / 10) as usize; // 10 pins per GPFSELn
+        let offset = (self.pin % 10) as u32;
+        let shifted = (function as u32) << (offset * 3);
+        self.registers.FSEL[reg].and_mask(!shifted); // clear the 3 bits
+        self.registers.FSEL[reg].or_mask(shifted); // set our function
+        self.transition()
     }
 
     /// Sets this pin to be an _output_ pin. Consumes self and returns a `Gpio`
@@ -122,12 +126,16 @@ impl Gpio<Uninitialized> {
 impl Gpio<Output> {
     /// Sets (turns on) the pin.
     pub fn set(&mut self) {
-        unimplemented!()
+        let reg = (self.pin / 32) as usize;
+        let offset = self.pin % 32;
+        self.registers.SET[reg].write(1 << offset);
     }
 
     /// Clears (turns off) the pin.
     pub fn clear(&mut self) {
-        unimplemented!()
+        let reg = (self.pin / 32) as usize;
+        let offset = self.pin % 32;
+        self.registers.CLR[reg].write(1 << offset);
     }
 }
 
@@ -135,6 +143,8 @@ impl Gpio<Input> {
     /// Reads the pin's value. Returns `true` if the level is high and `false`
     /// if the level is low.
     pub fn level(&mut self) -> bool {
-        unimplemented!()
+        let reg = (self.pin / 32) as usize;
+        let offset = self.pin % 32;
+        self.registers.LEV[reg].has_mask(1 << offset)
     }
 }

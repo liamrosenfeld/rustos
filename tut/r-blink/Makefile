@@ -43,9 +43,8 @@ clean:
 	cargo clean
 	rm -rf build
 
-install:
-	@echo "+ Installing build/$(KERN).elf [install-kernel.py]"
-	@$(ROOT)/bin/install-kernel.py build/$(KERN).elf
+install: release
+	cp ./build/blinky.bin /media/liam/boot/kernel8.img
 
 test:
 	cargo test --target=$(shell $(ROOT)/bin/get-host-target.sh)

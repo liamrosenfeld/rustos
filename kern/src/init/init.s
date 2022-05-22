@@ -19,7 +19,7 @@ halt:
 
 setup:
     // store the desired EL1 stack pointer in x1
-    adr     x1, _start
+    ldr     x1, =_start
 
     // read the current exception level into x0 (ref: C5.2.1)
     mrs     x0, CurrentEL
