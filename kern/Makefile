@@ -28,8 +28,8 @@ transmit: build
 	@echo "+ Transmitting build/$(KERN).bin to $(TTY_PATH)"
 	ttywrite -i build/$(KERN).bin $(TTY_PATH)
 
-objdump: build
-	cargo objdump -- -disassemble -no-show-raw-insn -print-imm-hex build/$(KERN).elf
+objdump:
+	cargo objdump --release -- --disassemble --no-show-raw-insn
 
 nm: build
 	cargo nm build/$(KERN).elf

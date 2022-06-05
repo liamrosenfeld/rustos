@@ -5,7 +5,6 @@ set -e
 TOP=$(git rev-parse --show-toplevel)
 BIN=$TOP/bin
 DEP=$TOP/.dep
-VER=nightly-2019-07-01
 PROJ_PKG=(build-essential
      python3
      socat
@@ -15,8 +14,8 @@ PROJ_PKG=(build-essential
      screen
      clang
      lld
-     linux-image-extra-virtual)
-QEMU_DEP=(libglib2.0-dev libpixman-1-dev zlib1g-dev)
+     linux-image-extra-virtual
+     qemu-system-arm)
 
 # install pkgs
 if [[ $($BIN/get-dist) == "ubuntu" ]]; then
@@ -24,7 +23,6 @@ if [[ $($BIN/get-dist) == "ubuntu" ]]; then
 
     sudo apt update
     sudo apt install -y ${PROJ_PKG[*]}
-    sudo apt install -y ${QEMU_DEP[*]}
 fi
 
 # install rustup
@@ -36,6 +34,8 @@ if ! [ -x "$(command -v rustup)" ]; then
     export PATH=$HOME/.cargo/bin:$PATH
 fi
 
+# install rust nightly
+echo "[!] Installing rust nightly"
 rustup toolchain install nightly
 rustup default nightly
 rustup component add rust-src clippy
@@ -44,7 +44,8 @@ rustup component add rust-src clippy
 mkdir -p $DEP
 pushd $DEP
 if ! [ -e cargo-objcopy ]; then
-  cargo install cargo-binutils
-  rustup component add llvm-tools-preview
+    echo "[!] Installing cargo binutils"
+    cargo install cargo-binutils
+    rustup component add llvm-tools-preview
 fi
 popd
