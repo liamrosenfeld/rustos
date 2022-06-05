@@ -15,7 +15,6 @@ pub mod shell;
 use core::time::Duration;
 use pi::timer;
 use pi::gpio::{Gpio, Output};
-use console::kprintln;
 
 fn blink(pin: &mut Gpio<Output>) {
     let pause = Duration::from_millis(200);
@@ -27,9 +26,11 @@ fn blink(pin: &mut Gpio<Output>) {
 
 unsafe fn kmain() -> ! {
     let mut pin = Gpio::new(16).into_output();
+    blink(&mut pin);
+
+    shell::shell("> ");
 
     loop {
         blink(&mut pin);
-        kprintln!("Hello {}", 1);
     }
 }

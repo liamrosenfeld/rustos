@@ -2,7 +2,7 @@ use stack_vec::StackVec;
 use core::prelude::rust_2021::derive;
 use core::fmt::Debug;
 use core::result::{Result, Result::Err, Result::Ok};
-use core::unimplemented;
+use core::str;
 use core::iter::Iterator;
 
 use crate::console::{kprint, kprintln, CONSOLE};
@@ -42,12 +42,71 @@ impl<'a> Command<'a> {
 
     /// Returns this command's path. This is equivalent to the first argument.
     fn path(&self) -> &str {
-        unimplemented!()
+        self.args.first().unwrap_or(&"")
     }
 }
 
 /// Starts a shell using `prefix` as the prefix for each line. This function
 /// returns if the `exit` command is called.
-pub fn shell(prefix: &str) -> ! {
-    unimplemented!()
+pub fn shell(prefix: &str) {
+    // welcome the user
+    kprintln!("WELCOME TO THE SHELL");
+
+    // storage for the input for each line
+    let mut line_buf =  [0; 512];
+    let mut line = StackVec::new(&mut line_buf);
+
+    // keep recieving commands until exit
+    loop {
+        // start new line
+        kprint!("{}", prefix);
+        line.truncate(0);
+
+        // grab contents of line
+        loop {
+            let byte = CONSOLE.lock().read_byte();
+            match byte {
+                // valid ascii
+                32..=126 => {
+                    if let Ok(_) = line.push(byte) {
+                        CONSOLE.lock().write_byte(byte);
+                    }
+                },
+
+                // backspace and delete
+                8 | 127 => {
+                    if line.len() > 0 {
+                        CONSOLE.lock().write_byte(8);
+                        CONSOLE.lock().write_byte(b' ');
+                        CONSOLE.lock().write_byte(8);
+                        line.truncate(line.len() - 1);
+                    }
+                },
+
+                // end on newline
+                b'\n' | b'\r' => {
+                    kprintln!();
+                    break
+                },
+
+                // ring bell for invalid character
+                _ => CONSOLE.lock().write_byte(7)
+            }
+        }
+
+        // get command from that
+        let line_str = str::from_utf8(line.as_slice()).unwrap();
+        let mut arg_buf = [""; 64];
+        match Command::parse(line_str, &mut arg_buf) {
+            Ok(cmd) => {
+                match cmd.path() {
+                    "exit" => break,
+                    "echo" => kprintln!("{}", &line_str[5..]),
+                    _ => kprintln!("unknown command: {}", cmd.path())
+                }
+            },
+            Err(Error::TooManyArgs) => kprintln!("error: too many arguments"),
+            Err(Error::Empty) => {}
+        }
+    }
 }
