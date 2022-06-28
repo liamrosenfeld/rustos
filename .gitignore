@@ -3,3 +3,5 @@ build/
 TAGS
 .dep
 .vscode
+lib/**/Cargo.lock
+ext/fat32-imgs/*.fat32.img

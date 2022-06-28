@@ -1,3 +1,6 @@
+use shim::io;
+use shim::path::{Path, PathBuf};
+
 use stack_vec::StackVec;
 use core::prelude::rust_2021::derive;
 use core::fmt::Debug;
@@ -5,7 +8,14 @@ use core::result::{Result, Result::Err, Result::Ok};
 use core::str;
 use core::iter::Iterator;
 
+use pi::atags::Atags;
+
+use fat32::traits::FileSystem;
+use fat32::traits::{Dir, Entry};
+
 use crate::console::{kprint, kprintln, CONSOLE};
+use crate::ALLOCATOR;
+use crate::FILESYSTEM;
 
 /// Error type for `Command` parse failures.
 #[derive(Debug)]
@@ -48,7 +58,7 @@ impl<'a> Command<'a> {
 
 /// Starts a shell using `prefix` as the prefix for each line. This function
 /// returns if the `exit` command is called.
-pub fn shell(prefix: &str) {
+pub fn shell(prefix: &str) -> ! {
     // welcome the user
     kprintln!("WELCOME TO THE SHELL");
 
@@ -109,4 +119,6 @@ pub fn shell(prefix: &str) {
             Err(Error::Empty) => {}
         }
     }
+
+    unimplemented!()
 }

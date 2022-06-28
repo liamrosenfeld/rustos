@@ -2,13 +2,20 @@
 #![feature(decl_macro)]
 #![feature(auto_traits)]
 #![feature(negative_impls)]
+#![feature(optin_builtin_traits)]
+#![feature(raw_vec_internals)]
+
 #![cfg_attr(not(test), no_std)]
 #![cfg_attr(not(test), no_main)]
 
 #[cfg(not(test))]
 mod init;
 
+extern crate alloc;
+
+pub mod allocator;
 pub mod console;
+pub mod fs;
 pub mod mutex;
 pub mod shell;
 
@@ -24,13 +31,19 @@ fn blink(pin: &mut Gpio<Output>) {
     timer::spin_sleep(pause);
 }
 
-unsafe fn kmain() -> ! {
-    let mut pin = Gpio::new(16).into_output();
-    blink(&mut pin);
+use allocator::Allocator;
+use fs::FileSystem;
 
-    shell::shell("> ");
+#[cfg_attr(not(test), global_allocator)]
+pub static ALLOCATOR: Allocator = Allocator::uninitialized();
+pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
 
-    loop {
-        blink(&mut pin);
+fn kmain() -> ! {
+    unsafe {
+        ALLOCATOR.initialize();
+        FILESYSTEM.initialize();
     }
+
+    kprintln!("Welcome to cs3210!");
+    shell::shell("> ");
 }
