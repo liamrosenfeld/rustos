@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::{self, BufReader};
 use std::path::PathBuf;
 use std::time::Duration;
-use xmodem::{Progress, Xmodem};
+use xmodem::{Progress, Xmodem, PACKET_SIZE};
 
 use parsers::{parse_baud_rate, parse_flow_control, parse_stop_bits, parse_width};
 
@@ -26,7 +26,7 @@ struct Opt {
         long = "baud",
         parse(try_from_str = parse_baud_rate),
         help = "Set baud rate",
-        default_value = "115200"
+        default_value = "38400"
     )]
     baud_rate: BaudRate,
 
@@ -91,13 +91,20 @@ fn main() {
 
     // get input
     let mut input: Box<dyn io::Read> = match opt.input {
-        Some(file) => Box::new(BufReader::new(File::open(file).unwrap())),
+        Some(path) => {
+            let file = File::open(path).unwrap();
+            let size = file.metadata().unwrap().len();
+            if !opt.raw && (size > (255 * PACKET_SIZE) as u64) {
+                panic!("File is too large to send");
+            }
+            Box::new(BufReader::new(file))
+        }
         None => Box::new(BufReader::new(io::stdin())),
     };
 
     // transmit
     if opt.raw {
-        io::copy(&mut input, &mut port);
+        io::copy(&mut input, &mut port).unwrap();
     } else {
         Xmodem::transmit_with_progress(input, port, progress_fn).unwrap();
     }

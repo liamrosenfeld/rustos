@@ -2,40 +2,39 @@ ROOT := $(shell git rev-parse --show-toplevel)
 
 KERN := boot
 TARGET := target/aarch64-unknown-none/release/${KERN}
-OBJCPY := cargo objcopy -- --strip-all -O binary
 
-.PHONY: all build qemu objdump nm check clean install test
+.PHONY: all bin elf qemu objdump nm check clean install test
 
-all: build
+all: bin
 
-build:
-	@echo "+ Building build/$(KERN).elf [build/$@]"
+bin:
+	@mkdir -p build
+	cargo objcopy -- --strip-all -O binary build/$(KERN).bin
+	
+elf:
 	@cargo build --release
 	@mkdir -p build
 	@cp -f $(TARGET) build/$(KERN).elf
 
-	@echo "+ Building build/$(KERN).bin [objcopy]"
-	@$(OBJCPY) $(TARGET) build/$(KERN).bin
-
 check:
 	@cargo check
 
-qemu: build
-	./qemu.sh build/$(KERN).elf
+qemu: bin
+	./qemu.sh build/$(KERN).bin
 
-objdump: build
-	cargo objdump -- -disassemble -no-show-raw-insn -print-imm-hex build/$(KERN).elf
+objdump: 
+	cargo objdump --release -- --disassemble --no-show-raw-insn
 
-nm: build
+nm: elf
 	cargo nm build/$(KERN).elf
 
 clean:
 	cargo clean
 	rm -rf build
 
-install: build
-	@echo "+ Installing build/$(KERN).elf [install-kernel.py]"
-	@$(ROOT)/bin/install-kernel.py build/$(KERN).elf
+install: bin
+	cp ./build/$(KERN).bin /Volumes/boot/kernel8.img
+	diskutil eject disk2
 
 test:
 	cargo test --target=$(shell $(ROOT)/bin/get-host-target.sh)

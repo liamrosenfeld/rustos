@@ -13,8 +13,8 @@ pub mod mutex;
 pub mod shell;
 
 use core::time::Duration;
-use pi::timer;
 use pi::gpio::{Gpio, Output};
+use pi::timer;
 
 fn blink(pin: &mut Gpio<Output>) {
     let pause = Duration::from_millis(200);

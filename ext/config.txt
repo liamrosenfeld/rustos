@@ -1,2 +1,3 @@
 arm_64bit=1
+kernel_address=0x4000000
 #enable_jtag_gpio=1

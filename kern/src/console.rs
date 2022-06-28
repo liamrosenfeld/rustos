@@ -1,12 +1,15 @@
+use crate::mutex::Mutex;
 use core::fmt;
-use pi::uart::MiniUart;
-use shim::io;
 use core::option::Option::{self, None, Some};
 use core::result::Result::Ok;
-use core::{format_args, concat};
-use crate::mutex::Mutex;
+use core::{concat, format_args};
+use pi::uart::{BaudRate, MiniUart};
+use shim::io;
 
 /// A global singleton allowing read/write access to the console.
+///
+/// Uses a baudrate of 115200 so the command to connect to it is
+/// `screen /dev/tty.usbserial-0001 115200`
 pub struct Console {
     inner: Option<MiniUart>,
 }
@@ -21,7 +24,7 @@ impl Console {
     #[inline]
     fn initialize(&mut self) {
         if let None = self.inner {
-            self.inner = Some(MiniUart::new());
+            self.inner = Some(MiniUart::new(BaudRate::Baud115200));
         }
     }
 

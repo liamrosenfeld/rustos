@@ -2,7 +2,9 @@
 target = "aarch64-unknown-none"
 
 [target.aarch64-unknown-none]
-runner = "./qemu.sh"
+# runner = "./qemu.sh"
+runner = "gdb -command=../ext/debug/debug.gdb"
+# runner = "lldb"
 rustflags = [
     "-C", "target-cpu=cortex-a53",
     "-C", "link-arg=--script=.cargo/layout.ld",

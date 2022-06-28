@@ -23,6 +23,17 @@ enum LsrStatus {
     TxAvailable = 1 << 5,
 }
 
+/// Enum representing the divisors for various baud rates
+/// Baudrate = freq / 8(divisor + 1)
+/// Freq = 250MHZ on the pi
+#[repr(u16)]
+pub enum BaudRate {
+    Baud19200 = 1627,
+    Baud38400 = 813,
+    Baud76800 = 406,
+    Baud115200 = 270,
+}
+
 #[repr(C)]
 #[allow(non_snake_case)]
 struct Registers {
@@ -57,13 +68,13 @@ pub struct MiniUart {
 
 impl MiniUart {
     /// Initializes the mini UART by enabling it as an auxiliary peripheral,
-    /// setting the data size to 8 bits, setting the BAUD rate to ~115200 (baud
-    /// divider of 270), setting GPIO pins 14 and 15 to alternative function 5
+    /// setting the data size to 8 bits, setting the BAUD rate to the divider for
+    /// the desired rate, setting GPIO pins 14 and 15 to alternative function 5
     /// (TXD1/RDXD1), and finally enabling the UART transmitter and receiver.
     ///
     /// By default, reads will never time out. To set a read timeout, use
     /// `set_read_timeout()`.
-    pub fn new() -> MiniUart {
+    pub fn new(baud: BaudRate) -> MiniUart {
         let registers = unsafe {
             // enable the mini UART as an auxiliary device.
             (*AUX_ENABLES).or_mask(1);
@@ -75,10 +86,10 @@ impl MiniUart {
         Gpio::new(14).into_alt(Function::Alt5);
         Gpio::new(15).into_alt(Function::Alt5);
 
-        // set data size, baud rate, enable transmitter and reciever
-        registers.LCR.or_mask(0b11);
-        registers.BAUD.write(270);
-        registers.CNTL.or_mask(0b11);
+        // configure
+        registers.LCR.or_mask(0b11); // 8 bit mode
+        registers.BAUD.write(baud as u16); // baud divisor
+        registers.CNTL.or_mask(0b11); // enable transmitter and reciever
 
         MiniUart {
             registers,
@@ -126,9 +137,7 @@ impl MiniUart {
                     }
                 }
             }
-            None => {
-                while !self.has_byte() {}
-            }
+            None => while !self.has_byte() {},
         }
         Ok(())
     }
@@ -137,6 +146,13 @@ impl MiniUart {
     pub fn read_byte(&mut self) -> u8 {
         while !self.has_byte() {}
         self.registers.IO.read()
+    }
+
+    /// Emptys all current bytes waiting to be read
+    pub fn clear(&mut self) {
+        while self.has_byte() {
+            let _ = self.read_byte();
+        }
     }
 }
 
@@ -162,13 +178,10 @@ mod uart_io {
         fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
             // apply timeout for first byte
             if let Err(_) = self.wait_for_byte() {
-                return ioerr!(
-                    TimedOut, 
-                    "Did not recieve first byte in time"
-                );
+                return ioerr!(TimedOut, "Did not receive first byte in time");
             }
 
-            // fill buffer for as may bytes as possibl
+            // fill buffer for as may bytes as possible
             let mut count = 0;
             while self.has_byte() && count < buf.len() {
                 buf[count] = self.read_byte();

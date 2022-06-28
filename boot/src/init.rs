@@ -1,3 +1,4 @@
+use core::arch::global_asm;
 use core::mem::zeroed;
 use core::ptr::write_volatile;
 

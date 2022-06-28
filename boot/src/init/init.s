@@ -15,7 +15,7 @@ _start:
 
 2:
     // set the stack to start before our boot code
-    adr     x1, _start
+    ldr     x1, =_start
     mov     sp, x1
 
     // jump to kinit, which shouldn't return. halt if it does

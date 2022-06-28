@@ -3,7 +3,7 @@ target = "aarch64-unknown-none"
 
 [target.aarch64-unknown-none]
 # runner = "./qemu.sh"
-runner = "gdb-multiarch -command=debug/debug.gdb"
+runner = "gdb-multiarch -command=../ext/debug/debug.gdb"
 rustflags = [
     "-C", "target-cpu=cortex-a53",
     "-C", "link-arg=--script=.cargo/layout.ld",

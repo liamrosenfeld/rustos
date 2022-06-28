@@ -12,4 +12,4 @@ load
 
 # enable the tui
 tui enable
-layout split
+layout src
