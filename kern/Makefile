@@ -2,6 +2,7 @@ ROOT := $(shell git rev-parse --show-toplevel)
 
 KERN := kernel
 TARGET := target/aarch64-unknown-none/release/${KERN}
+TEST_TARGET := x86_64-apple-darwin
 TTY_PATH := /dev/tty.usbserial-0001
 SDCARD ?= $(ROOT)/ext/fat32-imgs/mock1.fat32.img
 QEMU_ARGS ?=
@@ -48,7 +49,7 @@ clean:
 
 install: bin
 	cp ./build/$(KERN).bin /Volumes/boot/kernel8.img
-	diskutil eject disk2	
+	diskutil eject disk2
 
 test:
-	cargo test --target=$(shell $(ROOT)/bin/get-host-target.sh)
+	cargo test -Z build-std --target=$(TEST_TARGET)

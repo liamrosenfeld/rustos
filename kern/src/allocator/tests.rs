@@ -1,5 +1,8 @@
+#[cfg(test)]
 mod align_util {
     use crate::allocator::util::{align_down, align_up};
+    use core::assert_eq;
+    use core::prelude::rust_2021::test;
 
     #[test]
     fn test_align_down() {
@@ -72,18 +75,19 @@ mod align_util {
 
 mod allocator {
     extern crate alloc;
-    use alloc::raw_vec::RawVec;
+    use alloc::vec;
+    use alloc::vec::Vec;
 
     use core::alloc::Layout;
 
     use crate::allocator::{bin, bump, LocalAlloc};
 
     macro_rules! test_allocators {
-        (@$kind:ident, $name:ident, $mem:expr, |$info:pat| $block:expr) => {
+        (@$kind:ident, $name:ident, $mem:expr, |$info:pat_param| $block:expr) => {
             #[test]
             fn $name() {
-                let mem: RawVec<u8> = RawVec::with_capacity($mem);
-                let start = mem.ptr() as usize;
+                let mem: Vec<u8> = Vec::with_capacity($mem);
+                let start = mem.as_ptr() as usize;
                 let end = start + $mem;
 
                 let allocator = $kind::Allocator::new(start, end);
@@ -96,7 +100,7 @@ mod allocator {
             }
         };
 
-        ($bin:ident, $bump:ident, $mem:expr, |$info:pat| $block:expr) => (
+        ($bin:ident, $bump:ident, $mem:expr, |$info:pat_param| $block:expr) => (
             test_allocators!(@bin, $bin, $mem, |$info| $block);
             test_allocators!(@bump, $bump, $mem, |$info| $block);
         );
@@ -292,36 +296,19 @@ mod allocator {
 }
 
 mod linked_list {
-    use crate::allocator::linked_list::LinkedList;
+    use crate::allocator::linked_list::{LinkedList, ListNode};
 
     #[test]
-    fn example_1() {
-        let address_1 = (&mut (1 as usize)) as *mut usize;
-        let address_2 = (&mut (2 as usize)) as *mut usize;
+    fn list_pop() {
+        let address_1 = (&mut ListNode::new(1)) as *mut ListNode;
+        let address_2 = (&mut ListNode::new(2)) as *mut ListNode;
+        let address_3 = (&mut ListNode::new(3)) as *mut ListNode;
 
         let mut list = LinkedList::new();
         unsafe {
-            list.push(address_1);
-            list.push(address_2);
-        }
-
-        assert_eq!(list.peek(), Some(address_2));
-        assert_eq!(list.pop(), Some(address_2));
-        assert_eq!(list.pop(), Some(address_1));
-        assert_eq!(list.pop(), None);
-    }
-
-    #[test]
-    fn example_2() {
-        let address_1 = (&mut (1 as usize)) as *mut usize;
-        let address_2 = (&mut (2 as usize)) as *mut usize;
-        let address_3 = (&mut (3 as usize)) as *mut usize;
-
-        let mut list = LinkedList::new();
-        unsafe {
-            list.push(address_1);
-            list.push(address_2);
-            list.push(address_3);
+            list.push(address_1 as *mut u8, 1);
+            list.push(address_2 as *mut u8, 2);
+            list.push(address_3 as *mut u8, 3);
         }
 
         for node in list.iter_mut() {
@@ -332,20 +319,21 @@ mod linked_list {
 
         assert_eq!(list.pop(), Some(address_3));
         assert_eq!(list.pop(), Some(address_1));
+        assert_eq!(list.is_empty(), true);
         assert_eq!(list.pop(), None);
     }
 
     #[test]
-    fn example_3() {
-        let address_1 = (&mut (1 as usize)) as *mut usize;
-        let address_2 = (&mut (2 as usize)) as *mut usize;
-        let address_3 = (&mut (3 as usize)) as *mut usize;
+    fn list_iter() {
+        let address_1 = (&mut ListNode::new(1)) as *mut ListNode;
+        let address_2 = (&mut ListNode::new(2)) as *mut ListNode;
+        let address_3 = (&mut ListNode::new(3)) as *mut ListNode;
 
         let mut list = LinkedList::new();
         unsafe {
-            list.push(address_1);
-            list.push(address_2);
-            list.push(address_3);
+            list.push(address_1 as *mut u8, 1);
+            list.push(address_2 as *mut u8, 2);
+            list.push(address_3 as *mut u8, 3);
         }
 
         for node in list.iter_mut() {
@@ -381,5 +369,7 @@ mod linked_list {
 
         let mut iter = list.iter();
         assert_eq!(iter.next(), None);
+
+        assert_eq!(list.is_empty(), true);
     }
 }

@@ -23,9 +23,14 @@ impl Atags {
 impl Iterator for Atags {
     type Item = Atag;
 
-    // FIXME: Implement `Iterator` for `Atags`
     fn next(&mut self) -> Option<Atag> {
-        unimplemented!()
+        match self.ptr {
+            Some(atag) => {
+                self.ptr = atag.next();
+                Some(Atag::from(atag))
+            }
+            None => None,
+        }
     }
 }
 

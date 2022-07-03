@@ -19,7 +19,7 @@ const ACK: u8 = 0x06;
 const NAK: u8 = 0x15;
 const CAN: u8 = 0x18;
 
-pub const PACKET_SIZE: usize = 256;
+pub const PACKET_SIZE: usize = 1024;
 
 /// Implementation of the XMODEM protocol.
 pub struct Xmodem<R> {

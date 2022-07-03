@@ -14,12 +14,8 @@ edition = "2021"
 pi = { path = "../lib/pi" }
 shim = { path = "../lib/shim", features = ["no_std", "alloc"] }
 stack-vec = { path = "../lib/stack-vec/" }
-fat32 = { path = "../lib/fat32/", features = ["no_std"] }
+# fat32 = { path = "../lib/fat32/", features = ["no_std"] }
 
 [dev-dependencies]
 shim = { path = "../lib/shim", features = ["alloc"]}
 
-[[bin]]
-name = "kernel"
-test = false
-bench = false

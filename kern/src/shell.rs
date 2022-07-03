@@ -1,21 +1,22 @@
-use shim::io;
-use shim::path::{Path, PathBuf};
+// use shim::io;
+// use shim::path::{Path, PathBuf};
 
-use stack_vec::StackVec;
-use core::prelude::rust_2021::derive;
 use core::fmt::Debug;
+use core::iter::Iterator;
+use core::panic;
+use core::prelude::rust_2021::derive;
 use core::result::{Result, Result::Err, Result::Ok};
 use core::str;
-use core::iter::Iterator;
+use stack_vec::StackVec;
 
-use pi::atags::Atags;
+// use pi::atags::Atags;
 
-use fat32::traits::FileSystem;
-use fat32::traits::{Dir, Entry};
+// use fat32::traits::FileSystem;
+// use fat32::traits::{Dir, Entry};
 
 use crate::console::{kprint, kprintln, CONSOLE};
-use crate::ALLOCATOR;
-use crate::FILESYSTEM;
+// use crate::ALLOCATOR;
+// use crate::FILESYSTEM;
 
 /// Error type for `Command` parse failures.
 #[derive(Debug)]
@@ -63,7 +64,7 @@ pub fn shell(prefix: &str) -> ! {
     kprintln!("WELCOME TO THE SHELL");
 
     // storage for the input for each line
-    let mut line_buf =  [0; 512];
+    let mut line_buf = [0; 512];
     let mut line = StackVec::new(&mut line_buf);
 
     // keep recieving commands until exit
@@ -81,7 +82,7 @@ pub fn shell(prefix: &str) -> ! {
                     if let Ok(_) = line.push(byte) {
                         CONSOLE.lock().write_byte(byte);
                     }
-                },
+                }
 
                 // backspace and delete
                 8 | 127 => {
@@ -91,16 +92,16 @@ pub fn shell(prefix: &str) -> ! {
                         CONSOLE.lock().write_byte(8);
                         line.truncate(line.len() - 1);
                     }
-                },
+                }
 
                 // end on newline
                 b'\n' | b'\r' => {
                     kprintln!();
-                    break
-                },
+                    break;
+                }
 
                 // ring bell for invalid character
-                _ => CONSOLE.lock().write_byte(7)
+                _ => CONSOLE.lock().write_byte(7),
             }
         }
 
@@ -108,17 +109,13 @@ pub fn shell(prefix: &str) -> ! {
         let line_str = str::from_utf8(line.as_slice()).unwrap();
         let mut arg_buf = [""; 64];
         match Command::parse(line_str, &mut arg_buf) {
-            Ok(cmd) => {
-                match cmd.path() {
-                    "exit" => break,
-                    "echo" => kprintln!("{}", &line_str[5..]),
-                    _ => kprintln!("unknown command: {}", cmd.path())
-                }
+            Ok(cmd) => match cmd.path() {
+                "echo" => kprintln!("{}", &line_str[5..]),
+                "panic" => panic!("example panic message"),
+                _ => kprintln!("unknown command: {}", cmd.path()),
             },
             Err(Error::TooManyArgs) => kprintln!("error: too many arguments"),
             Err(Error::Empty) => {}
         }
     }
-
-    unimplemented!()
 }

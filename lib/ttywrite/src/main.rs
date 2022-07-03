@@ -89,24 +89,38 @@ fn main() {
     port.set_timeout(Duration::new(opt.timeout, 0))
         .expect("failed to set timeout");
 
-    // get input
-    let mut input: Box<dyn io::Read> = match opt.input {
+    match opt.input {
         Some(path) => {
             let file = File::open(path).unwrap();
-            let size = file.metadata().unwrap().len();
-            if !opt.raw && (size > (255 * PACKET_SIZE) as u64) {
-                panic!("File is too large to send");
-            }
-            Box::new(BufReader::new(file))
-        }
-        None => Box::new(BufReader::new(io::stdin())),
-    };
 
-    // transmit
-    if opt.raw {
-        io::copy(&mut input, &mut port).unwrap();
-    } else {
-        Xmodem::transmit_with_progress(input, port, progress_fn).unwrap();
+            if opt.raw {
+                let mut input = BufReader::new(file);
+                io::copy(&mut input, &mut port).unwrap();
+            } else {
+                // check if the file is small enough for xmodem
+                let size = file.metadata().unwrap().len() as usize;
+                if !opt.raw && (size > (255 * PACKET_SIZE)) {
+                    panic!("File is too large to send");
+                }
+
+                // make special progress function
+                let total_packets =
+                    (size / PACKET_SIZE) + (if size % PACKET_SIZE == 0 { 0 } else { 1 });
+                println!("TOTAL PACKETS: {}", total_packets);
+
+                // send
+                let mut input = BufReader::new(file);
+                Xmodem::transmit_with_progress(input, port, progress_fn).unwrap();
+            }
+        }
+        None => {
+            let mut input = BufReader::new(io::stdin());
+            if opt.raw {
+                io::copy(&mut input, &mut port).unwrap();
+            } else {
+                Xmodem::transmit_with_progress(input, port, progress_fn).unwrap();
+            }
+        }
     }
 }
 
