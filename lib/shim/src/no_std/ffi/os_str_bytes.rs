@@ -9,7 +9,6 @@ use alloc::vec::Vec;
 use core::fmt::{self, Formatter, Write};
 use core::mem;
 use core::str;
-use core::str::lossy::{Utf8Lossy, Utf8LossyChunk};
 
 #[derive(Clone, Hash)]
 pub(crate) struct Buf {
@@ -26,13 +25,35 @@ fn debug_fmt_bytestring(slice: &[u8], f: &mut Formatter<'_>) -> fmt::Result {
     }
 
     f.write_str("\"")?;
-    for Utf8LossyChunk { valid, broken } in Utf8Lossy::from_bytes(slice).chunks() {
-        write_str_escaped(f, valid)?;
-        for b in broken {
-            write!(f, "\\x{:02X}", b)?;
+    from_utf8_lossy(slice, |string| {
+        write_str_escaped(f, string)
+    })?;
+    f.write_str("\"")
+}
+
+fn from_utf8_lossy<F>(mut input: &[u8], mut push: F) -> fmt::Result where F: FnMut(&str) -> fmt::Result {
+    loop {
+        match str::from_utf8(input) {
+            Ok(valid) => {
+                push(valid)?;
+                break
+            }
+            Err(error) => {
+                let (valid, after_valid) = input.split_at(error.valid_up_to());
+                unsafe {
+                    push(str::from_utf8_unchecked(valid))?;
+                }
+                push("\u{FFFD}")?;
+
+                if let Some(invalid_sequence_length) = error.error_len() {
+                    input = &after_valid[invalid_sequence_length..]
+                } else {
+                    break
+                }
+            }
         }
     }
-    f.write_str("\"")
+    Ok(())
 }
 
 // FIXME:
@@ -53,7 +74,9 @@ impl fmt::Debug for Slice {
 
 impl fmt::Display for Slice {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&Utf8Lossy::from_bytes(&self.inner), formatter)
+        from_utf8_lossy(&self.inner, |string| {
+            formatter.write_str(string)
+        })
     }
 }
 
